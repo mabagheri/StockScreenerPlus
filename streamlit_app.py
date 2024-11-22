@@ -1,5 +1,6 @@
 import streamlit as st
 import yfinance as yf
+import numpy as np
 import pandas as pd
 
 # List of top 100 US stocks
