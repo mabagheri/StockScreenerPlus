@@ -21,7 +21,7 @@ def fetch_stock_data(tickers):
             " ": ticker,
             "MarCap (B)": np.round((info.get("marketCap") / 1e9), 2) if info.get("marketCap") else None,
             "Price": info.get("regularMarketPrice"),
-            "Price2": ticker.history(period='1d')['Close'][0]
+            "Price2": stock.history(period='1d')['Close'][0]
             # "Chg (%)": info.get("regularMarketChangePercent"),
             "Volume": info.get("regularMarketVolume"),
             "EPS": info.get("trailingEps"),
