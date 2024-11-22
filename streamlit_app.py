@@ -22,10 +22,10 @@ def fetch_stock_data(tickers):
             "MarCap (B)": np.round((info.get("marketCap") / 1e9), 2) if info.get("marketCap") else None,
             # "Price": info.get("regularMarketPrice"),
             "Price": stock.history(period='1d')['Close'][0],
-            # "Chg (%)": info.get("regularMarketChangePercent"),
+            "Chg (%)": info.get("regularMarketChangePercent"),
             "Volume": info.get("regularMarketVolume"),
             "EPS": info.get("trailingEps"),
-            # "1M Perf (%)": ((history['Close'][-1] / history['Close'][0]) - 1) * 100 if len(history) > 0 else None
+            "1M Perf (%)": ((history['Close'][-1] / history['Close'][0]) - 1) * 100 if len(history) > 0 else None
         })
 
     st.write(stock.history(period='1d'))
@@ -39,8 +39,8 @@ df = fetch_stock_data(top_100_stocks)
 #                    index=['falcon', 'dog', 'spider', 'fish'])
 
 # Streamlit app
-st.set_page_config(page_title="Stock Screener", page_icon=":chart_with_upwards_trend:")
-
-st.title("Top 100 US Stocks by Market Capitalization")
+# st.set_page_config(page_title="Stock Screener", page_icon=":chart_with_upwards_trend:")
+st.title(":grey[🚀NASDAQ 100 STOCK SCREENER 📈]")
+# st.title("Top 100 US Stocks by Market Capitalization")
 st.write("Sortable table with metrics:")
 st.dataframe(df, use_container_width=True)
