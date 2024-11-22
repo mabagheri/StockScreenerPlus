@@ -28,7 +28,7 @@ def fetch_stock_data(tickers):
             # "1M Perf (%)": ((history['Close'][-1] / history['Close'][0]) - 1) * 100 if len(history) > 0 else None
         })
 
-    st.print(stock.history(period='1d'))
+    st.write(stock.history(period='1d'))
     return pd.DataFrame(data)
 
 # Fetch data (cached)
