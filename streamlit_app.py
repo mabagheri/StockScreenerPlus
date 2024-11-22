@@ -20,14 +20,15 @@ def fetch_stock_data(tickers):
         data.append({
             " ": ticker,
             "MarCap (B)": np.round((info.get("marketCap") / 1e9), 2) if info.get("marketCap") else None,
-            "Price": info.get("regularMarketPrice"),
-            "Price2": stock.history(period='1d')['Close'][0],
+            # "Price": info.get("regularMarketPrice"),
+            "Price": stock.history(period='1d')['Close'][0],
             # "Chg (%)": info.get("regularMarketChangePercent"),
             "Volume": info.get("regularMarketVolume"),
             "EPS": info.get("trailingEps"),
             # "1M Perf (%)": ((history['Close'][-1] / history['Close'][0]) - 1) * 100 if len(history) > 0 else None
         })
-    
+
+    st.print(stock.history(period='1d'))
     return pd.DataFrame(data)
 
 # Fetch data (cached)
