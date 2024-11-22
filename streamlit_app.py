@@ -18,7 +18,7 @@ def fetch_stock_data(tickers):
         # Extract desired metrics
         data.append({
             " ": ticker,
-            "MarCap (B)": info.get("marketCap"), #/1_000_000, 2),
+            "MarCap (B)": np.round(info.get("marketCap") / 1000000, 2),
             "Price": info.get("regularMarketPrice"),
             # "Chg (%)": info.get("regularMarketChangePercent"),
             "Volume": info.get("regularMarketVolume"),
