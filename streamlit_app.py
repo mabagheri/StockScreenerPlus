@@ -18,12 +18,12 @@ def fetch_stock_data(tickers):
         # Extract desired metrics
         data.append({
             " ": ticker,
-            "MarCap (B)": np.round(info.get("marketCap")/1_000_000, 2),
+            "MarCap (B)": info.get("marketCap") #/1_000_000, 2),
             "Price": info.get("regularMarketPrice"),
-            "Chg (%)": info.get("regularMarketChangePercent"),
+            # "Chg (%)": info.get("regularMarketChangePercent"),
             "Volume": info.get("regularMarketVolume"),
             "EPS": info.get("trailingEps"),
-            "1M Perf (%)": ((history['Close'][-1] / history['Close'][0]) - 1) * 100 if len(history) > 0 else None
+            # "1M Perf (%)": ((history['Close'][-1] / history['Close'][0]) - 1) * 100 if len(history) > 0 else None
         })
     
     return pd.DataFrame(data)
