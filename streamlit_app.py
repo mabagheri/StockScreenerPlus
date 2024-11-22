@@ -39,6 +39,8 @@ df = fetch_stock_data(top_100_stocks)
 #                    index=['falcon', 'dog', 'spider', 'fish'])
 
 # Streamlit app
+st.set_page_config(page_title="Stock Screener", page_icon=":chart_with_upwards_trend:")
+
 st.title("Top 100 US Stocks by Market Capitalization")
 st.write("Sortable table with metrics:")
 st.dataframe(df, use_container_width=True)
