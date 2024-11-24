@@ -1,46 +1,200 @@
 import streamlit as st
-import yfinance as yf
-import numpy as np
 import pandas as pd
+import yfinance as yf
+import os
+from datetime import datetime, timedelta
 
-# List of top 100 US stocks
-top_100_stocks = [
-    "AAPL", "MSFT"]
+# Helper function to fetch metadata, including logo, market cap, sector, and analyst rating
+def get_stock_metadata_with_logo(ticker, updated_data):
+    try:
+        # Filter data for the specific ticker
+        ticker_data = updated_data[updated_data['Ticker'] == ticker]
+        if ticker_data.empty:
+            return {
+                "Logo": None,
+                "Company": "N/A",
+                "Market Cap": "N/A",
+                "Sector": "N/A",
+                "EPS": "N/A",
+                "Current Price": "N/A",
+                "Percentage Change (%)": "N/A",
+                "1Y Decrease (%)": "N/A",
+                "90D Decrease (%)": "N/A",
+                "Analyst Rating": "N/A",
+            }
 
-@st.cache_data
-def fetch_stock_data(tickers):
-    """ Fetch stock data for the given tickers."""
-    data = []
-    for ticker in tickers:
+        # Calculate price statistics
+        current_price = ticker_data['Close'].iloc[-1]
+        highest_1y = ticker_data[ticker_data['Date'] >= (datetime.now().date() - timedelta(days=365))]['High'].max()
+        highest_90d = ticker_data[ticker_data['Date'] >= (datetime.now().date() - timedelta(days=90))]['High'].max()
+        previous_close = ticker_data['Close'].iloc[-2] if len(ticker_data) > 1 else None
+        percentage_change = (
+            ((current_price - previous_close) / previous_close) * 100 if previous_close else "N/A"
+        )
+        decrease_1y = (
+            ((highest_1y - current_price) / highest_1y) * 100 if highest_1y else "N/A"
+        )
+        decrease_90d = (
+            ((highest_90d - current_price) / highest_90d) * 100 if highest_90d else "N/A"
+        )
+
+        # Fetch additional metadata from Yahoo Finance
         stock = yf.Ticker(ticker)
         info = stock.info
-        history = stock.history(period="1mo")
-        
-        # Extract desired metrics
-        data.append({
-            " ": ticker,
-            "MarCap (B)": np.round((info.get("marketCap") / 1e9), 2) if info.get("marketCap") else None,
-            # "Price": info.get("regularMarketPrice"),
-            "Price": stock.history(period='1d')['Close'][0],
-            "Chg (%)": info.get("regularMarketChangePercent"),
-            "Volume": info.get("regularMarketVolume"),
-            "EPS": info.get("trailingEps"),
-            "1M Perf (%)": ((history['Close'][-1] / history['Close'][0]) - 1) * 100 if len(history) > 0 else None
-        })
+        company_name = info.get("shortName", ticker)
+        market_cap = info.get("marketCap", "N/A")
+        sector = info.get("sector", "N/A")
+        logo_url = info.get("logo_url", None)
+        eps = info.get("trailingEps", "N/A")
+        analyst_rating = info.get("recommendationKey", "N/A")
+
+        return {
+            "Logo": logo_url,
+            "Company": company_name,
+            "Market Cap": market_cap,
+            "Sector": sector,
+            "EPS": eps,
+            "Current Price": current_price,
+            "Percentage Change (%)": percentage_change,
+            "1Y Decrease (%)": decrease_1y,
+            "90D Decrease (%)": decrease_90d,
+            "Analyst Rating": analyst_rating,
+        }
+    except Exception as e:
+        return {
+            "Logo": None,
+            "Company": "N/A",
+            "Market Cap": "N/A",
+            "Sector": "N/A",
+            "EPS": "N/A",
+            "Current Price": "N/A",
+            "Percentage Change (%)": "N/A",
+            "1Y Decrease (%)": "N/A",
+            "90D Decrease (%)": "N/A",
+            "Analyst Rating": "N/A",
+        }
 
 
-    return pd.DataFrame(data)
+# Update stock data function with metadata table
+def update_stock_data_with_metadata(region, new_tickers=None):
+    log = []
+    summary_data = {}
+    market_open = is_market_open()
+    today = datetime.now().date()
+    yesterday = today - timedelta(days=1)
 
-# Fetch data (cached)
-df = fetch_stock_data(top_100_stocks)
-# df = pd.DataFrame({'num_legs': [2, 4, 8, 0],
-#                     'num_wings': [2, 0, 0, 0],
-#                     'num_specimen_seen': [10, 2, 1, 8]},
-#                    index=['falcon', 'dog', 'spider', 'fish'])
+    # Define folder for the selected region
+    region_folder = os.path.join(DATA_FOLDER, region)
+    if not os.path.exists(region_folder):
+        log.append(f"Folder for {region} does not exist.")
+        os.makedirs(region_folder)
 
-# Streamlit app
-# st.set_page_config(page_title="Stock Screener", page_icon=":chart_with_upwards_trend:")
-st.title(":grey[🚀NASDAQ 100 STOCK SCREENER 📈]")
-# st.title("Top 100 US Stocks by Market Capitalization")
-st.write("Sortable table with metrics:")
-st.dataframe(df, use_container_width=True)
+    # Get list of existing CSV files in the region folder
+    existing_csv_files = [f for f in os.listdir(region_folder) if f.endswith('.csv')]
+    existing_tickers = [file.replace(".csv", "") for file in existing_csv_files]
+
+    # Initialize combined data storage
+    all_updated_data = []
+
+    # Update existing stocks
+    for csv_file in existing_csv_files:
+        file_path = os.path.join(region_folder, csv_file)
+        ticker = csv_file.replace(".csv", "")  # Assuming filename = ticker.csv
+
+        # Load existing data
+        existing_data = pd.read_csv(file_path)
+        last_date = pd.to_datetime(existing_data['Date']).max().date()
+
+        # Fetch new data from Yahoo Finance
+        stock_data = yf.download(ticker, start=last_date + timedelta(days=1), progress=False)
+        if stock_data.empty:
+            log.append(f"No new data for {ticker} in {region}.")
+            continue
+
+        stock_data.reset_index(inplace=True)
+        stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+        stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
+        stock_data['Ticker'] = ticker
+
+        # Combine existing and new data
+        updated_data = pd.concat([existing_data, stock_data]).drop_duplicates(subset='Date').sort_values('Date')
+
+        # Save data up to yesterday if market is open, otherwise save all
+        if market_open:
+            save_data = updated_data[updated_data['Date'] <= yesterday]
+            log.append(f"Fetched data for {ticker} in {region}. Saved until {yesterday}.")
+        else:
+            save_data = updated_data
+            log.append(f"Fetched and saved complete data for {ticker} in {region}.")
+
+        # Save updated data to CSV
+        save_data.to_csv(file_path, index=False)
+
+        # Add updated data to the combined DataFrame for summary calculations
+        all_updated_data.append(updated_data)
+
+    # Handle new tickers if provided
+    if new_tickers:
+        for ticker in new_tickers:
+            if ticker in existing_tickers:
+                log.append(f"{ticker} already exists in {region}. Skipping...")
+                continue
+
+            log.append(f"Adding new stock {ticker} to {region}.")
+            stock_data = yf.download(ticker, period="5y", progress=False)
+
+            if stock_data.empty:
+                log.append(f"Failed to fetch data for {ticker}. Skipping...")
+                continue
+
+            stock_data.reset_index(inplace=True)
+            stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+            stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
+            stock_data['Ticker'] = ticker
+
+            # Save data up to yesterday if market is open, otherwise save all
+            if market_open:
+                save_data = stock_data[stock_data['Date'] <= yesterday]
+            else:
+                save_data = stock_data
+
+            save_data.to_csv(os.path.join(region_folder, f"{ticker}.csv"), index=False)
+            log.append(f"Data for {ticker} saved successfully.")
+            all_updated_data.append(stock_data)
+
+    # Combine all updated data for the region
+    combined_data = pd.concat(all_updated_data, ignore_index=True)
+
+    # Generate summary for each ticker
+    tickers = combined_data['Ticker'].unique()
+    for ticker in tickers:
+        stock_metadata = get_stock_metadata_with_logo(ticker, combined_data)
+        summary_data[ticker] = stock_metadata
+
+    # Convert summary data to a DataFrame for display
+    summary_df = pd.DataFrame.from_dict(summary_data, orient='index')
+    return log, summary_df
+
+
+# Streamlit UI for updating and displaying metadata table
+st.sidebar.title("Stock Data Updater")
+region = st.sidebar.selectbox(
+    "Select Region",
+    ["US", "Canada"]
+)
+
+new_tickers_input = st.sidebar.text_area(
+    "Optionally Enter New Stocks (comma-separated, e.g., AAPL, TSLA, GOOG):"
+)
+
+if st.sidebar.button(f"Update {region} Stock Data"):
+    new_tickers = [ticker.strip().upper() for ticker in new_tickers_input.split(",") if ticker.strip()] if new_tickers_input else None
+    with st.spinner(f"Updating stock data for {region}..."):
+        log, summary_df = update_stock_data_with_metadata(region, new_tickers)
+    st.success(f"Update complete for {region}!")
+    st.text_area("Logs", "\n".join(log))
+
+    # Display summary table
+    if not summary_df.empty:
+        st.subheader(f"{region} Stock Summary")
+        st.dataframe(summary_df)
