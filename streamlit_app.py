@@ -4,10 +4,18 @@ import yfinance as yf
 import os
 from datetime import datetime, timedelta
 
-# Helper function to fetch metadata, including logo, market cap, sector, and analyst rating
+DATA_FOLDER = "data"
+
+# Helper function to check if the market is open
+def is_market_open():
+    now = datetime.now()
+    market_open_time = now.replace(hour=9, minute=30, second=0, microsecond=0)
+    market_close_time = now.replace(hour=16, minute=0, second=0, microsecond=0)
+    return market_open_time <= now <= market_close_time
+
+# Function to fetch company metadata, including logo, market cap, sector, and analyst rating
 def get_stock_metadata_with_logo(ticker, updated_data):
     try:
-        # Filter data for the specific ticker
         ticker_data = updated_data[updated_data['Ticker'] == ticker]
         if ticker_data.empty:
             return {
@@ -23,7 +31,6 @@ def get_stock_metadata_with_logo(ticker, updated_data):
                 "Analyst Rating": "N/A",
             }
 
-        # Calculate price statistics
         current_price = ticker_data['Close'].iloc[-1]
         highest_1y = ticker_data[ticker_data['Date'] >= (datetime.now().date() - timedelta(days=365))]['High'].max()
         highest_90d = ticker_data[ticker_data['Date'] >= (datetime.now().date() - timedelta(days=90))]['High'].max()
@@ -38,7 +45,6 @@ def get_stock_metadata_with_logo(ticker, updated_data):
             ((highest_90d - current_price) / highest_90d) * 100 if highest_90d else "N/A"
         )
 
-        # Fetch additional metadata from Yahoo Finance
         stock = yf.Ticker(ticker)
         info = stock.info
         company_name = info.get("shortName", ticker)
@@ -60,7 +66,7 @@ def get_stock_metadata_with_logo(ticker, updated_data):
             "90D Decrease (%)": decrease_90d,
             "Analyst Rating": analyst_rating,
         }
-    except Exception as e:
+    except Exception:
         return {
             "Logo": None,
             "Company": "N/A",
@@ -74,8 +80,7 @@ def get_stock_metadata_with_logo(ticker, updated_data):
             "Analyst Rating": "N/A",
         }
 
-
-# Update stock data function with metadata table
+# Main function to update stock data and generate metadata table
 def update_stock_data_with_metadata(region, new_tickers=None):
     log = []
     summary_data = {}
@@ -83,29 +88,23 @@ def update_stock_data_with_metadata(region, new_tickers=None):
     today = datetime.now().date()
     yesterday = today - timedelta(days=1)
 
-    # Define folder for the selected region
     region_folder = os.path.join(DATA_FOLDER, region)
     if not os.path.exists(region_folder):
-        log.append(f"Folder for {region} does not exist.")
         os.makedirs(region_folder)
 
-    # Get list of existing CSV files in the region folder
     existing_csv_files = [f for f in os.listdir(region_folder) if f.endswith('.csv')]
     existing_tickers = [file.replace(".csv", "") for file in existing_csv_files]
 
-    # Initialize combined data storage
     all_updated_data = []
 
     # Update existing stocks
     for csv_file in existing_csv_files:
         file_path = os.path.join(region_folder, csv_file)
-        ticker = csv_file.replace(".csv", "")  # Assuming filename = ticker.csv
+        ticker = csv_file.replace(".csv", "")
 
-        # Load existing data
         existing_data = pd.read_csv(file_path)
         last_date = pd.to_datetime(existing_data['Date']).max().date()
 
-        # Fetch new data from Yahoo Finance
         stock_data = yf.download(ticker, start=last_date + timedelta(days=1), progress=False)
         if stock_data.empty:
             log.append(f"No new data for {ticker} in {region}.")
@@ -116,33 +115,24 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
         stock_data['Ticker'] = ticker
 
-        # Combine existing and new data
         updated_data = pd.concat([existing_data, stock_data]).drop_duplicates(subset='Date').sort_values('Date')
 
-        # Save data up to yesterday if market is open, otherwise save all
         if market_open:
             save_data = updated_data[updated_data['Date'] <= yesterday]
-            log.append(f"Fetched data for {ticker} in {region}. Saved until {yesterday}.")
         else:
             save_data = updated_data
-            log.append(f"Fetched and saved complete data for {ticker} in {region}.")
 
-        # Save updated data to CSV
         save_data.to_csv(file_path, index=False)
-
-        # Add updated data to the combined DataFrame for summary calculations
         all_updated_data.append(updated_data)
 
-    # Handle new tickers if provided
+    # Add new tickers if provided
     if new_tickers:
         for ticker in new_tickers:
             if ticker in existing_tickers:
                 log.append(f"{ticker} already exists in {region}. Skipping...")
                 continue
 
-            log.append(f"Adding new stock {ticker} to {region}.")
             stock_data = yf.download(ticker, period="5y", progress=False)
-
             if stock_data.empty:
                 log.append(f"Failed to fetch data for {ticker}. Skipping...")
                 continue
@@ -152,31 +142,25 @@ def update_stock_data_with_metadata(region, new_tickers=None):
             stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
             stock_data['Ticker'] = ticker
 
-            # Save data up to yesterday if market is open, otherwise save all
             if market_open:
                 save_data = stock_data[stock_data['Date'] <= yesterday]
             else:
                 save_data = stock_data
 
             save_data.to_csv(os.path.join(region_folder, f"{ticker}.csv"), index=False)
-            log.append(f"Data for {ticker} saved successfully.")
             all_updated_data.append(stock_data)
 
-    # Combine all updated data for the region
     combined_data = pd.concat(all_updated_data, ignore_index=True)
 
-    # Generate summary for each ticker
     tickers = combined_data['Ticker'].unique()
     for ticker in tickers:
         stock_metadata = get_stock_metadata_with_logo(ticker, combined_data)
         summary_data[ticker] = stock_metadata
 
-    # Convert summary data to a DataFrame for display
     summary_df = pd.DataFrame.from_dict(summary_data, orient='index')
     return log, summary_df
 
-
-# Streamlit UI for updating and displaying metadata table
+# Streamlit App
 st.sidebar.title("Stock Data Updater")
 region = st.sidebar.selectbox(
     "Select Region",
@@ -194,7 +178,6 @@ if st.sidebar.button(f"Update {region} Stock Data"):
     st.success(f"Update complete for {region}!")
     st.text_area("Logs", "\n".join(log))
 
-    # Display summary table
     if not summary_df.empty:
         st.subheader(f"{region} Stock Summary")
         st.dataframe(summary_df)
