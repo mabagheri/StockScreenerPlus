@@ -6,7 +6,7 @@ from datetime import datetime, timedelta
 
 DATA_FOLDER = "data"
 
-st.write(2)
+st.write(1)
 # Helper function to check if the market is open
 def is_market_open():
     now = datetime.now()
@@ -83,6 +83,7 @@ def get_stock_metadata_with_logo(ticker, updated_data):
 
 # Main function to update stock data and generate metadata table
 def update_stock_data_with_metadata(region, new_tickers=None):
+    st.write(2)
     log = []
     summary_data = {}
     market_open = is_market_open()
