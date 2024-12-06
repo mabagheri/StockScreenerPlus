@@ -4,7 +4,7 @@ import yfinance as yf
 import os
 from datetime import datetime, timedelta
 
-DATA_FOLDER = "data"
+DATA_FOLDER = "Data"
 
 st.write(1)
 # Helper function to check if the market is open
