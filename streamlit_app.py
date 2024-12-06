@@ -15,9 +15,10 @@ def is_market_open():
     return market_open_time <= now <= market_close_time
 
 # Function to fetch company metadata, including logo, market cap, sector, and analyst rating
-def get_stock_metadata_with_logo(ticker, updated_data):
+def get_stock_metadata_with_logo(ticker, ticker_data):
     try:
-        ticker_data = updated_data[updated_data['Ticker'] == ticker]
+        st.write("ticker_data", ticker_data.head(2))
+        # ticker_data = updated_data[updated_data['Ticker'] == ticker]
         if ticker_data.empty:
             return {
                 "Logo": None,
@@ -103,7 +104,6 @@ def update_stock_data_with_metadata(region, new_tickers=None):
     
     # Update existing stocks
     for csv_file in existing_csv_files:
-        st.write(4)
         file_path = os.path.join(region_folder, csv_file)
         ticker = csv_file.replace(".csv", "")
 
@@ -131,25 +131,30 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         # st.write(set(stock_data.columns) - set(existing_data.columns))
 
         updated_data = pd.concat([existing_data, stock_data], ignore_index=True).drop_duplicates(subset='Date').sort_values('Date')
-        st.dataframe(updated_data.head(2))
-        st.dataframe(updated_data.tail(2))
+        st.write("updated_data:")
+        st.dataframe(updated_data.head(1))
+        st.dataframe(updated_data.tail(1))
         if market_open:
             save_data = updated_data[updated_data['Date'] <= yesterday]
         else:
             save_data = updated_data
 
-        save_data.to_csv(file_path, index=False)
+        # save_data.to_csv(file_path, index=False)
         all_updated_data.append(updated_data)
+
+        stock_metadata = get_stock_metadata_with_logo(ticker, updated_data)
+        st.write(stock_metadata)
+        summary_data[ticker] = stock_metadata
 
     combined_data = pd.concat(all_updated_data, ignore_index=True)
     st.write("combined_data.shape",combined_data.head(2))
     # tickers = combined_data['Ticker'].unique()
     # st.write("tickers", tickers)
     
-    for ticker in tickers:
-        stock_metadata = get_stock_metadata_with_logo(ticker, combined_data)
-        st.write(stock_metadata)
-        summary_data[ticker] = stock_metadata
+    # for ticker in tickers:
+    #     stock_metadata = get_stock_metadata_with_logo(ticker, combined_data)
+    #     st.write(stock_metadata)
+    #     summary_data[ticker] = stock_metadata
 
     summary_df = pd.DataFrame.from_dict(summary_data, orient='index')
     return log, summary_df
