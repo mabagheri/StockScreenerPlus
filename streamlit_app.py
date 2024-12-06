@@ -93,14 +93,16 @@ def update_stock_data_with_metadata(region, new_tickers=None):
     region_folder = os.path.join(DATA_FOLDER, region)
     if not os.path.exists(region_folder):
         os.makedirs(region_folder)
-
+    
+    st.write(3)
     existing_csv_files = [f for f in os.listdir(region_folder) if f.endswith('.csv')]
     existing_tickers = [file.replace(".csv", "") for file in existing_csv_files]
 
     all_updated_data = []
-
+    st.write(existing_csv_files)
     # Update existing stocks
     for csv_file in existing_csv_files:
+        st.write(4)
         file_path = os.path.join(region_folder, csv_file)
         ticker = csv_file.replace(".csv", "")
 
