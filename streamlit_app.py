@@ -121,30 +121,21 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         st.write(stock_data.head(2))
        
         stock_data.reset_index(inplace=True)
-        st.write(124)
-        st.dataframe(stock_data.head(2))
-
-        stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']]
-        st.write(128)
-        st.dataframe(stock_data.head(2))
-        
-        stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
-        st.write(132)
-        st.dataframe(stock_data.head(2))
-        
+        stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']]        
+        stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date        
         # stock_data['Ticker'] = ticker
-        st.write(136)
-        st.dataframe(stock_data.head(2))
         
-        # st.write("stock data:")
-        # st.dataframe(stock_data.head(2))
-        # st.dataframe(stock_data.tail(2))
+        st.write("stock data:")
+        st.dataframe(stock_data.head(2))
 
         st.write("existing_data:")
         st.dataframe(existing_data.head(2))
         st.dataframe(existing_data.tail(2))
-        
-        updated_data = pd.concat([existing_data, stock_data], axis=1).drop_duplicates(subset='Date').sort_values('Date')
+        st.write(134)
+        st.write(set(existing_data.columns) - set(stock_data.columns)
+        st.write(set(stock_data.columns) - set(existing_data.columns)
+
+        updated_data = pd.concat([existing_data, stock_data], ignore_index=True)#.drop_duplicates(subset='Date').sort_values('Date')
         st.dataframe(updated_data.head(2))
         st.dataframe(updated_data.tail(2))
         if market_open:
