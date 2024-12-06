@@ -48,9 +48,11 @@ def get_stock_metadata_with_logo(ticker, ticker_data):
             ((highest_90d - current_price) / highest_90d) * 100 if highest_90d else "N/A"
         )
 
-        stock = yf.Ticker(ticker)
+        stock = yf.Ticker("AAPL")
         info = stock.info
         st.write(53)
+        st.write(type(info))
+        st.write((info))
         company_name = 'test' # info.get("shortName", ticker)
         st.write(type(info))
         st.write(56)
