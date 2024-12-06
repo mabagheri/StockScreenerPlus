@@ -52,7 +52,7 @@ def get_stock_metadata_with_logo(ticker, ticker_data):
         info = stock.info
         st.write(53)
         company_name = 'test' # info.get("shortName", ticker)
-        st.write(info)
+        st.write(type(info))
         market_cap = info['marketCap'] # .get("marketCap", "market cap")
         st.write(57)
         sector = info.get("sector", "Sector")
