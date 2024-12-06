@@ -35,11 +35,9 @@ def get_stock_metadata_with_logo(ticker, ticker_data):
             }
 
         current_price = ticker_data['Close'].iloc[-1]
-        st.write(37)
         highest_1y = ticker_data[ticker_data['Date'] >= (datetime.now().date() - timedelta(days=365))]['High'].max()
         highest_90d = ticker_data[ticker_data['Date'] >= (datetime.now().date() - timedelta(days=90))]['High'].max()
         previous_close = ticker_data['Close'].iloc[-2] if len(ticker_data) > 1 else None
-        st.write(42)
         percentage_change = (
             ((current_price - previous_close) / previous_close) * 100 if previous_close else "N/A"
         )
@@ -51,13 +49,17 @@ def get_stock_metadata_with_logo(ticker, ticker_data):
         )
 
         stock = yf.Ticker(ticker)
-        st.write(54)
         info = stock.info
+        st.write(53)
         company_name = info.get("shortName", ticker)
+        st.write(55)
         market_cap = info.get("marketCap", "N/A")
+        st.write(57)
         sector = info.get("sector", "N/A")
         logo_url = info.get("logo_url", None)
+        st.write(60)
         eps = info.get("trailingEps", "N/A")
+        st.write(62)
         analyst_rating = info.get("recommendationKey", "N/A")
         st.write(62)
 
