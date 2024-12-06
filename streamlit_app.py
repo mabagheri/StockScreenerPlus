@@ -172,11 +172,12 @@ def update_stock_data_with_metadata(region, new_tickers=None):
             all_updated_data.append(stock_data)
 
     combined_data = pd.concat(all_updated_data, ignore_index=True)
-    st.write("combined_data.shape",combined_data.head(2)
-    tickers = combined_data['Ticker'].unique()
-    st.write("tickers", tickers)
+    st.write("combined_data.shape",combined_data.head(2))
+    # tickers = combined_data['Ticker'].unique()
+    # st.write("tickers", tickers)
     for ticker in tickers:
         stock_metadata = get_stock_metadata_with_logo(ticker, combined_data)
+        st.write(stock_metadata)
         summary_data[ticker] = stock_metadata
 
     summary_df = pd.DataFrame.from_dict(summary_data, orient='index')
