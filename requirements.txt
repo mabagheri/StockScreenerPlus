@@ -1,2 +1,2 @@
 streamlit
-yfinance
+yfinance==0.2.12
