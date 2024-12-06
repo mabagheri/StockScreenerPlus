@@ -91,7 +91,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
     yesterday = today - timedelta(days=1)
 
     region_folder = os.path.join(DATA_FOLDER, region)
-    st.write(regiion_folder)
+    st.write(region_folder)
     if not os.path.exists(region_folder):
         st.write(2.5)
         os.makedirs(region_folder)
