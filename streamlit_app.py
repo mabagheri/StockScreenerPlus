@@ -107,7 +107,9 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         file_path = os.path.join(region_folder, csv_file)
         ticker = csv_file.replace(".csv", "")
 
-        existing_data = pd.read_csv(file_path, parse_date=['Date'])
+        existing_data = pd.read_csv(file_path)
+        existing_data['Date'] = pd.to_datetime(existing_data['Date']).dt.date        
+
         last_date = pd.to_datetime(existing_data['Date']).max().date()
         
         stock_data = yf.download(ticker, start=last_date, progress=False, interval='1d')
