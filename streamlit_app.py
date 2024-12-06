@@ -121,7 +121,11 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
         stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
         stock_data['Ticker'] = ticker
+        st.dataframe(stock_data.head(2))
+        st.dataframe(stock_data.tail(2))
 
+        st.dataframe(existing_data.head(2))
+        st.dataframe(existing_data.tail(2))
         
         updated_data = pd.concat([existing_data, stock_data]).drop_duplicates(subset='Date').sort_values('Date')
         st.dataframe(updated_data.head(2))
