@@ -124,7 +124,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         st.write(124)
         st.dataframe(stock_data.head(2))
 
-        stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+        stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']]
         st.write(128)
         st.dataframe(stock_data.head(2))
         
@@ -132,7 +132,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         st.write(132)
         st.dataframe(stock_data.head(2))
         
-        stock_data['Ticker'] = ticker
+        # stock_data['Ticker'] = ticker
         st.write(136)
         st.dataframe(stock_data.head(2))
         
@@ -144,7 +144,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         st.dataframe(existing_data.head(2))
         st.dataframe(existing_data.tail(2))
         
-        updated_data = pd.concat([existing_data, stock_data]).drop_duplicates(subset='Date').sort_values('Date')
+        updated_data = pd.concat([existing_data, stock_data], axis=1).drop_duplicates(subset='Date').sort_values('Date')
         st.dataframe(updated_data.head(2))
         st.dataframe(updated_data.tail(2))
         if market_open:
