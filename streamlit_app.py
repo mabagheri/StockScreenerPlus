@@ -17,9 +17,10 @@ def is_market_open():
 # Function to fetch company metadata, including logo, market cap, sector, and analyst rating
 def get_stock_metadata_with_logo(ticker, ticker_data):
     try:
-        st.write("ticker_data", ticker_data.head(2))
+        st.write(ticker, "ticker_data", ticker_data.head(2))
         # ticker_data = updated_data[updated_data['Ticker'] == ticker]
         if ticker_data.empty:
+            st.write(23)
             return {
                 "Logo": None,
                 "Company": "N/A",
@@ -34,9 +35,11 @@ def get_stock_metadata_with_logo(ticker, ticker_data):
             }
 
         current_price = ticker_data['Close'].iloc[-1]
+        st.write(37)
         highest_1y = ticker_data[ticker_data['Date'] >= (datetime.now().date() - timedelta(days=365))]['High'].max()
         highest_90d = ticker_data[ticker_data['Date'] >= (datetime.now().date() - timedelta(days=90))]['High'].max()
         previous_close = ticker_data['Close'].iloc[-2] if len(ticker_data) > 1 else None
+        st.write(42)
         percentage_change = (
             ((current_price - previous_close) / previous_close) * 100 if previous_close else "N/A"
         )
@@ -48,6 +51,7 @@ def get_stock_metadata_with_logo(ticker, ticker_data):
         )
 
         stock = yf.Ticker(ticker)
+        st.write(54)
         info = stock.info
         company_name = info.get("shortName", ticker)
         market_cap = info.get("marketCap", "N/A")
@@ -55,6 +59,7 @@ def get_stock_metadata_with_logo(ticker, ticker_data):
         logo_url = info.get("logo_url", None)
         eps = info.get("trailingEps", "N/A")
         analyst_rating = info.get("recommendationKey", "N/A")
+        st.write(62)
 
         return {
             "Logo": logo_url,
@@ -113,7 +118,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         last_date = pd.to_datetime(existing_data['Date']).max().date()
         
         stock_data = yf.download(ticker, start=last_date, progress=False, interval='1d')
-        st.write(stock_data.shape)
+        # st.write(stock_data.shape)
         if stock_data.empty:
             log.append(f"No new data for {ticker} in {region}.")
             continue
@@ -123,11 +128,11 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date        
         # stock_data['Ticker'] = ticker
         
-        st.write("stock data:")
-        st.dataframe(stock_data.head(2))
+        # st.write("stock data:")
+        # st.dataframe(stock_data.head(2))
 
-        st.write("existing_data:")
-        st.dataframe(existing_data.head(2))
+        # st.write("existing_data:")
+        # st.dataframe(existing_data.head(2))
         # st.write(set(stock_data.columns) - set(existing_data.columns))
 
         updated_data = pd.concat([existing_data, stock_data], ignore_index=True).drop_duplicates(subset='Date').sort_values('Date')
