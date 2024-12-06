@@ -111,7 +111,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         existing_data = pd.read_csv(file_path)
         last_date = pd.to_datetime(existing_data['Date']).max().date()
         st.write(last_date)
-        stock_data = yf.download(ticker, start=last_date + timedelta(days=1), progress=False)
+        stock_data = yf.download(ticker, start="2024-07-02", end="2024-12-04", progress=False)
         st.write(stock_data.shape)
         if stock_data.empty:
             log.append(f"No new data for {ticker} in {region}.")
