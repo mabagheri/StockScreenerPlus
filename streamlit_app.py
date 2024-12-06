@@ -126,15 +126,15 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date        
         # stock_data['Ticker'] = ticker
         
-        # st.write("stock data:")
-        # st.dataframe(stock_data.head(2))
+        st.write("stock data:")
+        st.dataframe(stock_data.head(2))
 
-        # st.write("existing_data:")
-        # st.dataframe(existing_data.head(2))
-        # st.dataframe(existing_data.tail(2))
-        # st.write(set(stock_data.columns) - set(existing_data.columns))
+        st.write("existing_data:")
+        st.dataframe(existing_data.head(2))
+        st.dataframe(existing_data.tail(2))
+        st.write(set(stock_data.columns) - set(existing_data.columns))
 
-        updated_data = pd.concat([existing_data, stock_data], ignore_index=True).drop_duplicates(subset='Date').sort_values('Date')
+        updated_data = pd.concat([existing_data, stock_data], ignore_index=True)#.drop_duplicates(subset='Date').sort_values('Date')
         st.dataframe(updated_data.head(2))
         st.dataframe(updated_data.tail(2))
         if market_open:
