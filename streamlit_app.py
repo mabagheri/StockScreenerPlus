@@ -6,6 +6,7 @@ from datetime import datetime, timedelta
 
 DATA_FOLDER = "data"
 
+st.write(2)
 # Helper function to check if the market is open
 def is_market_open():
     now = datetime.now()
