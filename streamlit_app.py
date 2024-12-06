@@ -83,7 +83,6 @@ def get_stock_metadata_with_logo(ticker, updated_data):
 
 # Main function to update stock data and generate metadata table
 def update_stock_data_with_metadata(region, new_tickers=None):
-    st.write(2)
     log = []
     summary_data = {}
     market_open = is_market_open()
@@ -93,16 +92,15 @@ def update_stock_data_with_metadata(region, new_tickers=None):
     region_folder = os.path.join(DATA_FOLDER, region)
     st.write(region_folder)
     if not os.path.exists(region_folder):
-        st.write(2.5)
         os.makedirs(region_folder)
     
-    st.write(3)
     existing_csv_files = [f for f in os.listdir(region_folder) if f.endswith('.csv')]
     existing_tickers = [file.replace(".csv", "") for file in existing_csv_files]
 
     all_updated_data = []
     st.write(existing_csv_files)
     tickers = [csv_file.replace(".csv", "") for csv_file in existing_csv_files]
+    
     # Update existing stocks
     for csv_file in existing_csv_files:
         st.write(4)
@@ -111,15 +109,11 @@ def update_stock_data_with_metadata(region, new_tickers=None):
 
         existing_data = pd.read_csv(file_path)
         last_date = pd.to_datetime(existing_data['Date']).max().date()
-        # st.write(last_date)
-        stock_data = yf.download(ticker, start=last_date,  progress=False, interval='1d')
+        stock_data = yf.download(ticker, start=last_date, progress=False, interval='1d')
         st.write(stock_data.shape)
         if stock_data.empty:
             log.append(f"No new data for {ticker} in {region}.")
             continue
-
-        # st.write(120)
-        # st.write(stock_data.head(2))
        
         stock_data.reset_index(inplace=True)
         stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']]        
@@ -134,7 +128,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         st.dataframe(existing_data.tail(2))
         st.write(set(stock_data.columns) - set(existing_data.columns))
 
-        updated_data = pd.concat([existing_data, stock_data], ignore_index=True)#.drop_duplicates(subset='Date').sort_values('Date')
+        updated_data = pd.concat([existing_data, stock_data], ignore_index=True)#.drop_duplicates(subset='Date') #.sort_values('Date')
         st.dataframe(updated_data.head(2))
         st.dataframe(updated_data.tail(2))
         if market_open:
@@ -145,36 +139,11 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         # save_data.to_csv(file_path, index=False)
         all_updated_data.append(updated_data)
 
-    # Add new tickers if provided
-    if new_tickers:
-        st.write("new tickers")
-        for ticker in new_tickers:
-            if ticker in existing_tickers:
-                log.append(f"{ticker} already exists in {region}. Skipping...")
-                continue
-
-            stock_data = yf.download(ticker, period="5y", progress=False)
-            if stock_data.empty:
-                log.append(f"Failed to fetch data for {ticker}. Skipping...")
-                continue
-
-            stock_data.reset_index(inplace=True)
-            stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
-            stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
-            stock_data['Ticker'] = ticker
-
-            if market_open:
-                save_data = stock_data[stock_data['Date'] <= yesterday]
-            else:
-                save_data = stock_data
-
-            save_data.to_csv(os.path.join(region_folder, f"{ticker}.csv"), index=False)
-            all_updated_data.append(stock_data)
-
     combined_data = pd.concat(all_updated_data, ignore_index=True)
     st.write("combined_data.shape",combined_data.head(2))
     # tickers = combined_data['Ticker'].unique()
     # st.write("tickers", tickers)
+    
     for ticker in tickers:
         stock_metadata = get_stock_metadata_with_logo(ticker, combined_data)
         st.write(stock_metadata)
