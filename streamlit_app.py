@@ -124,17 +124,19 @@ def update_stock_data_with_metadata(region, new_tickers=None):
 
         
         updated_data = pd.concat([existing_data, stock_data]).drop_duplicates(subset='Date').sort_values('Date')
-
+        st.dataframe(updated_data.head(2))
+        st.dataframe(updated_data.tail(2))
         if market_open:
             save_data = updated_data[updated_data['Date'] <= yesterday]
         else:
             save_data = updated_data
 
-        save_data.to_csv(file_path, index=False)
+        # save_data.to_csv(file_path, index=False)
         all_updated_data.append(updated_data)
 
     # Add new tickers if provided
     if new_tickers:
+        st.write("new tickers")
         for ticker in new_tickers:
             if ticker in existing_tickers:
                 log.append(f"{ticker} already exists in {region}. Skipping...")
@@ -159,8 +161,9 @@ def update_stock_data_with_metadata(region, new_tickers=None):
             all_updated_data.append(stock_data)
 
     combined_data = pd.concat(all_updated_data, ignore_index=True)
-
+    st.write("combined_data.shape",combined_data.shape)
     tickers = combined_data['Ticker'].unique()
+    st.write("tickers", tickers)
     for ticker in tickers:
         stock_metadata = get_stock_metadata_with_logo(ticker, combined_data)
         summary_data[ticker] = stock_metadata
