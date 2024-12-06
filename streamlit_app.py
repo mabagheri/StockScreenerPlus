@@ -51,7 +51,7 @@ def get_stock_metadata_with_logo(ticker, ticker_data):
         stock = yf.Ticker(ticker)
         info = stock.info
         st.write(53)
-        company_name = info.get("shortName", ticker)
+        company_name = "test" # info.get("shortName", ticker)
         st.write(55)
         market_cap = info.get("marketCap", "N/A")
         st.write(57)
