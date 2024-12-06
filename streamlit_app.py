@@ -102,6 +102,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
 
     all_updated_data = []
     st.write(existing_csv_files)
+    tickers = [csv_file.replace(".csv", "") for csv_file in existing_csv_files]
     # Update existing stocks
     for csv_file in existing_csv_files:
         st.write(4)
@@ -110,32 +111,30 @@ def update_stock_data_with_metadata(region, new_tickers=None):
 
         existing_data = pd.read_csv(file_path)
         last_date = pd.to_datetime(existing_data['Date']).max().date()
-        st.write(last_date)
-        stock_data = yf.download(ticker, start="2024-07-02", end="2024-12-04",  progress=False, interval='1d')
+        # st.write(last_date)
+        stock_data = yf.download(ticker, start=last_date,  progress=False, interval='1d')
         st.write(stock_data.shape)
         if stock_data.empty:
             log.append(f"No new data for {ticker} in {region}.")
             continue
 
-        st.write(120)
-        st.write(stock_data.head(2))
+        # st.write(120)
+        # st.write(stock_data.head(2))
        
         stock_data.reset_index(inplace=True)
         stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Adj Close', 'Volume']]        
         stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date        
         # stock_data['Ticker'] = ticker
         
-        st.write("stock data:")
-        st.dataframe(stock_data.head(2))
+        # st.write("stock data:")
+        # st.dataframe(stock_data.head(2))
 
-        st.write("existing_data:")
-        st.dataframe(existing_data.head(2))
-        st.dataframe(existing_data.tail(2))
-        st.write(134)
-        st.write(set(existing_data.columns) - set(stock_data.columns))
-        st.write(set(stock_data.columns) - set(existing_data.columns))
+        # st.write("existing_data:")
+        # st.dataframe(existing_data.head(2))
+        # st.dataframe(existing_data.tail(2))
+        # st.write(set(stock_data.columns) - set(existing_data.columns))
 
-        updated_data = pd.concat([existing_data, stock_data], ignore_index=True)#.drop_duplicates(subset='Date').sort_values('Date')
+        updated_data = pd.concat([existing_data, stock_data], ignore_index=True).drop_duplicates(subset='Date').sort_values('Date')
         st.dataframe(updated_data.head(2))
         st.dataframe(updated_data.tail(2))
         if market_open:
@@ -173,7 +172,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
             all_updated_data.append(stock_data)
 
     combined_data = pd.concat(all_updated_data, ignore_index=True)
-    st.write("combined_data.shape",combined_data.shape)
+    st.write("combined_data.shape",combined_data.head(2)
     tickers = combined_data['Ticker'].unique()
     st.write("tickers", tickers)
     for ticker in tickers:
