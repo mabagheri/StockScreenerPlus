@@ -117,13 +117,28 @@ def update_stock_data_with_metadata(region, new_tickers=None):
             log.append(f"No new data for {ticker} in {region}.")
             continue
 
-        stock_data.reset_index(inplace=True)
-        stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
-        stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
-        stock_data['Ticker'] = ticker
-        st.write("stock data:")
+        st.write(120)
         st.dataframe(stock_data.head(2))
-        st.dataframe(stock_data.tail(2))
+       
+        stock_data.reset_index(inplace=True)
+        st.write(124)
+        st.dataframe(stock_data.head(2))
+
+        stock_data = stock_data[['Date', 'Open', 'High', 'Low', 'Close', 'Volume']]
+        st.write(128)
+        st.dataframe(stock_data.head(2))
+        
+        stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
+        st.write(132)
+        st.dataframe(stock_data.head(2))
+        
+        stock_data['Ticker'] = ticker
+        st.write(136)
+        st.dataframe(stock_data.head(2))
+        
+        # st.write("stock data:")
+        # st.dataframe(stock_data.head(2))
+        # st.dataframe(stock_data.tail(2))
 
         st.write("existing_data:")
         st.dataframe(existing_data.head(2))
