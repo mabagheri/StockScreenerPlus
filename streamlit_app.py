@@ -104,8 +104,9 @@ def update_stock_data_with_metadata(region, new_tickers=None):
 
         existing_data = pd.read_csv(file_path)
         last_date = pd.to_datetime(existing_data['Date']).max().date()
-
+        st.write(last_date)
         stock_data = yf.download(ticker, start=last_date + timedelta(days=1), progress=False)
+        st.write(stock_data.shape)
         if stock_data.empty:
             log.append(f"No new data for {ticker} in {region}.")
             continue
@@ -115,6 +116,7 @@ def update_stock_data_with_metadata(region, new_tickers=None):
         stock_data['Date'] = pd.to_datetime(stock_data['Date']).dt.date
         stock_data['Ticker'] = ticker
 
+        
         updated_data = pd.concat([existing_data, stock_data]).drop_duplicates(subset='Date').sort_values('Date')
 
         if market_open:
